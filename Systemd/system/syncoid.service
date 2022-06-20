@@ -1,0 +1,11 @@
+[Unit]
+Description=Starting syncoid      
+After=zfs-mount.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/popcorn9499/Scripts/zfs/syncoid.sh
+StartLimitInterval=600
+TimeoutSec=infinity
+[Install]
+WantedBy=multi-user.target
