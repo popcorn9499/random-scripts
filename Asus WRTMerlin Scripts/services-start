@@ -1,0 +1,64 @@
+#!/bin/sh
+
+PATH="/sbin:/usr/sbin:/bin:/usr/bin:${PATH}"
+
+
+#disables cut through forwarding
+nvram set ctf_disable=1
+
+nvram set ctf_disable_force=1
+
+
+#setups the vlans
+robocfg vlan 1 ports "0 1 2 4 5t"
+robocfg vlan 3 ports "4t 3 5t"
+robocfg vlan 7 ports "4t 5t"
+
+vconfig add eth0 7
+vconfig add eth0 3
+
+ifconfig vlan3 up
+ifconfig vlan7 up
+
+#remove all wireless networks required from br0
+brctl delif br0 wl0.1
+brctl delif br0 wl1.1
+brctl delif br0 wl0.2
+brctl delif br0 wl1.2
+
+brctl addbr br1
+brctl addif br1 vlan3
+brctl addif br1 wl0.1
+brctl addif br1 wl1.1
+brctl addbr br3
+brctl addif br3 vlan7
+brctl addif br3 wl0.2
+brctl addif br3 wl1.2
+
+
+#bring up br1 and br3 with statically assigned ips
+ifconfig br1 192.168.2.4 netmask 255.255.255.0
+ifconfig br3 up 192.168.4.4 netmask 255.255.255.0
+
+
+
+
+#nvram stuff not entirely sure the purpose
+nvram set lan_ifnames="vlan1 eth1 eth2 wl0.3 wl1.3"
+nvram set lan_ifname="br0"
+nvram set lan1_ifnames="vlan3 wl0.1 wl1.1"
+nvram set lan1_ifname="br1"
+nvram set lan2_ifnames="vlan7 wl0.2 wl1.2"
+nvram set lan2_ifname="br3"
+
+
+#im not even positive this needs to be done more than once
+nvram commit
+
+killall eapd
+eapd
+
+
+
+
+
